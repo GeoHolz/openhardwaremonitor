@@ -294,6 +294,15 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\ram.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Web\flot.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Web\js\jquery.flot.axislabels.js" />
+    <EmbeddedResource Include="Resources\Web\js\jquery.flot.min.js" />
+    <EmbeddedResource Include="Resources\Web\js\jquery.flot.symbol.min.js" />
+    <EmbeddedResource Include="Resources\Web\js\jquery.flot.time.min.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio AllowExistingFolder="true" />
