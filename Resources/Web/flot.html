@@ -1,0 +1,278 @@
+ <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>title</title>
+    <style type="text/css">
+        .flc-bar {
+        font-size: 20pt;
+        border: 1px grey solid;
+        }
+    </style>
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="js/jquery.flot.time.min.js"></script>    
+    <script type="text/javascript" src="js/jquery.flot.symbol.min.js"></script>
+    <script type="text/javascript" src="js/jquery.flot.axislabels.js"></script>
+    <script>
+    var dataCPULoad = [];
+	var dataMEMLoad = [];
+	var dataGPULoad = [];
+	var dataGPUTemp = [];
+	var dataCPUTemp = [];
+	var dataGPUPWM = [];
+	var dataset;
+	var totalPoints = 50;
+	var updateInterval = 2500;
+	var now = new Date().getTime();
+	var requestURL = 'data.json';
+	var y;
+	var z;
+	var tmpVar;
+	var tmpCPUTemp;
+	var tmpGPUTemp;
+	var tmpGPUPWM;
+
+function GetData() {
+        dataCPULoad.shift();
+        dataMEMLoad.shift();
+        dataGPULoad.shift();
+        dataGPUTemp.shift();
+        dataCPUTemp.shift();
+        dataGPUPWM.shift();
+      // $.ajaxSetup({
+      //      async: false
+      //  });
+        while (dataCPULoad.length < totalPoints) 
+        {         
+            if(dataCPULoad.length < 48)
+            {
+                var temp = [now += updateInterval, null];
+                dataCPULoad.push(temp);
+                dataMEMLoad.push(temp);
+                dataGPULoad.push(temp);  
+                dataGPUTemp.push(temp);
+                dataCPUTemp.push(temp);
+                dataGPUPWM.push(temp);            
+            
+            }
+            else
+            {
+                $.getJSON(requestURL, function(datajson) 
+                {
+                    y = datajson.Children[0].Children[1].Children[2].Children[0].Value;
+                    y=y.replace(/ /g,'');
+                    y=y.replace(/%/g,'');
+                    y=y.replace(/,/g,'.');                
+                    z = datajson.Children[0].Children[2].Children[0].Children[0].Value;
+                    z=z.replace(/ /g,'');
+                    z=z.replace(/%/g,'');
+                    z=z.replace(/,/g,'.');  
+                    tmpVar = datajson.Children[0].Children[3].Children[2].Children[0].Value;
+                    tmpVar=tmpVar.replace(/ /g,'');
+                    tmpVar=tmpVar.replace(/%/g,'');
+                    tmpVar=tmpVar.replace(/,/g,'.'); 
+                    tmpCPUTemp = datajson.Children[0].Children[1].Children[1].Children[4].Value; 
+                    if (tmpCPUTemp == "-"){tmpCPUTemp=null}
+                    else{                        
+                        tmpCPUTemp=tmpCPUTemp.replace(/ /g,'');
+                        tmpCPUTemp=tmpCPUTemp.replace(/°C/g,'');
+                        tmpCPUTemp=tmpCPUTemp.replace(/,/g,'.'); 
+                    }
+                    tmpGPUTemp = datajson.Children[0].Children[3].Children[1].Children[0].Value; 
+                    tmpGPUTemp=tmpGPUTemp.replace(/ /g,'');
+                    tmpGPUTemp=tmpGPUTemp.replace(/°C/g,'');
+                    tmpGPUTemp=tmpGPUTemp.replace(/,/g,'.'); 
+                    tmpGPUPWM = datajson.Children[0].Children[3].Children[4].Children[0].Value; 
+                    tmpGPUPWM=tmpGPUPWM.replace(/ /g,'');
+                    tmpGPUPWM=tmpGPUPWM.replace(/%/g,'');
+                    tmpGPUPWM=tmpGPUPWM.replace(/,/g,'.');                    
+                })
+                var temp = [now += updateInterval, y];
+                dataCPULoad.push(temp);
+                var temp = [now, z];
+                dataMEMLoad.push(temp);
+                var temp = [now, tmpVar];
+                dataGPULoad.push(temp);
+                var temp = [now, tmpCPUTemp];
+                dataCPUTemp.push(temp);
+                var temp = [now, tmpGPUTemp];
+                dataGPUTemp.push(temp);
+                var temp = [now, tmpGPUPWM];
+                dataGPUPWM.push(temp);                
+            }
+        }
+}
+var optionsPWM = {
+    series: {
+        lines: {
+            show: true,
+            lineWidth: 3,
+            fill: false
+        }
+    },
+    xaxis: {
+        mode: "time",
+        tickSize: [20, "second"],
+        axisLabel: "Time",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 10
+    },
+    yaxis: {
+        min: 0,
+        max: 100,        
+        tickSize: 5,
+        tickFormatter: function (v, axis) {
+            if (v % 10 == 0) {
+                return v + "%";
+            } else {
+                return "";
+            }
+        },
+        axisLabel: "FAN PWM in %",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 6
+    },
+    legend: {    
+        container: '.flc-bar3',
+        labelBoxBorderColor: "#fff",
+        position: "nw"
+    },
+    grid: {                
+        backgroundColor: "#ffffff",
+        tickColor: "#d5d5d5"
+    }
+};
+var options = {
+    series: {
+        lines: {
+            show: true,
+            lineWidth: 3,
+            fill: false
+        }
+    },
+    xaxis: {
+        mode: "time",
+        tickSize: [20, "second"],
+        axisLabel: "Time",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 10
+    },
+    yaxis: {
+        min: 0,
+        max: 100,        
+        tickSize: 5,
+        tickFormatter: function (v, axis) {
+            if (v % 10 == 0) {
+                return v + "%";
+            } else {
+                return "";
+            }
+        },
+        axisLabel: "Load in %",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 6
+    },
+    legend: {    
+        container: '.flc-bar1',
+        labelBoxBorderColor: "#fff",
+        position: "nw"
+    },
+    grid: {                
+        backgroundColor: "#ffffff",
+        tickColor: "#d5d5d5"
+    }
+};
+var optionsTemp = {
+    series: {
+        lines: {
+            show: true,
+            lineWidth: 3,
+            fill: false
+        }
+    },
+    xaxis: {
+        mode: "time",
+        tickSize: [20, "second"],
+        axisLabel: "Time",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 10
+    },
+    yaxis: {
+        min: 0,
+        max: 100,        
+        tickSize: 5,
+        tickFormatter: function (v, axis) {
+            if (v % 10 == 0) {
+                return v + "°";
+            } else {
+                return "";
+            }
+        },
+        axisLabel: "Temperature",
+        axisLabelUseCanvas: true,
+        axisLabelFontSizePixels: 12,
+        axisLabelFontFamily: 'Verdana, Arial',
+        axisLabelPadding: 6
+    },
+    legend: {    
+        container: '.flc-bar2',
+        labelBoxBorderColor: "#fff",
+        position: "nw"
+    },
+    grid: {                
+        backgroundColor: "#ffffff",
+        tickColor: "#d5d5d5"
+    }
+};
+
+$(document).ready(function () {
+    GetData();
+
+    dataset = [ { label: "CPU : "+dataCPULoad, data: dataCPULoad, color: "#124e78" },
+    { label: "Memory : "+dataMEMLoad, data: dataMEMLoad, color: "#f2bb05" },
+    { label: "GPU : "+dataGPULoad, data: dataGPULoad, color: "#6e0e0a" }];
+    $.plot($("#flot-placeholder1"), dataset, options);
+    
+    datasetTemp = [ { label: "CPU : "+dataCPUTemp, data: dataCPUTemp, color: "#124e78" },{ label: "GPU : "+dataGPUTemp, data: dataGPUTemp, color: "#6e0e0a" }];
+    $.plot($("#flot-placeholder2"), datasetTemp, optionsTemp);    
+
+    datasetPWM = [ { label: "GPU : "+dataGPUPWM, data: dataGPUPWM, color: "#6e0e0a" }];
+    $.plot($("#flot-placeholder3"), datasetPWM, optionsPWM);  
+    
+    function update() {
+        GetData();
+        dataset = [ { label: "CPU : "+dataCPULoad[49][1], data: dataCPULoad, color: "#124e78" },
+        { label: "Memory : "+dataMEMLoad[49][1], data: dataMEMLoad, color: "#f2bb05" },
+        { label: "GPU : "+dataGPULoad[49][1], data: dataGPULoad, color: "#6e0e0a" }];
+        $.plot($("#flot-placeholder1"), dataset, options);
+        datasetTemp = [ { label: "CPU T : "+dataCPUTemp[49][1], data: dataCPUTemp, color: "#124e78" },{ label: "GPU T: "+dataGPUTemp[49][1], data: dataGPUTemp, color: "#6e0e0a" }];
+        $.plot($("#flot-placeholder2"), datasetTemp, optionsTemp);
+        datasetPWM = [ { label: "GPU : "+dataGPUPWM[49][1], data: dataGPUPWM, color: "#6e0e0a" }];
+        $.plot($("#flot-placeholder3"), datasetPWM, optionsPWM); 
+        setTimeout(update, updateInterval);
+    }
+
+    update();
+});
+    </script>
+  </head>
+  <body>
+    <div id="flot-placeholder1" style="width:100%;height:300px"></div>
+    <div class="flc-bar1" style="background-color: white; ">Legend</div> 
+    <div id="flot-placeholder2" style="width:100%;height:300px"></div>
+    <div class="flc-bar2" style="background-color: white; ">Legend</div> 
+    <div id="flot-placeholder3" style="width:100%;height:300px"></div>
+    <div class="flc-bar3" style="background-color: white; ">Legend</div>    
+  </body>
+</html>
